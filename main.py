@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 from qasync import QEventLoop, asyncSlot
 from interface import Ui_takecathome
 
-# Task - disable button clicks
+# Task - disable button clicks when not in use
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -74,6 +74,18 @@ class MainWindow(QMainWindow):
     def battle_mode(self):
         pass
 
+    async def checkOption(self, options=[1,2,3,4]):
+        while True:
+            await self.option_clicked.wait()
+            if self.selected_option not in options:
+                self.print_main("\ninvalid option, please select a valid option")
+                self.option_clicked.clear()
+            else:
+                break
+    async def ifOption(self, options=[]):
+        for i,o in enumerate(options):
+            if i == self.selected_option - 1:
+                await options[i]() #i used my maximum brain power here.
 
     # Option selection function
     def option_selected(self, option_number):
@@ -125,11 +137,9 @@ class MainWindow(QMainWindow):
         self.print_main("< Press any option once done to continue >")
         self.print_options("press any you like (option 1, option 2, option 3, option 4....)")
         
-        # Wait for any option button to be clicked
-        await self.option_clicked.wait()
+        await self.checkOption()
         self.print_main(f"\nYou selected the option {self.selected_option} this time...")
         await self.sleep(1.3)
-        self.option_clicked.clear()  # Reset the event for future use
         
         # Clear the main text after an option is selected
         self.clear_main()
@@ -137,6 +147,7 @@ class MainWindow(QMainWindow):
         # there is no reason to clear these options but iam doing anyways just in case...
         await self.normal_start()
 
+    # -- START --#
     async def normal_start(self):
         # scene - 1
         print('start 1')
@@ -145,19 +156,11 @@ class MainWindow(QMainWindow):
         await self.sleep(1)
         self.print_main("Would you like to enter this shelter?")
         self.print_options("option 1 :- Yes\noption 2 :- No")
-        while True:
-            await self.option_clicked.wait()
-            if self.selected_option > 2:
-                self.print_main("\ninvalid option, please select a valid option")
-                self.option_clicked.clear()
-            else:
-                break
-        self.option_clicked.clear()
+        await self.checkOption([1,2])
         self.clear_options()
-        if self.selected_option == 1:
-            await self.go_shelter()
-        else:
-            pass
+        await self.ifOption([self.go_shelter, self.go_options]) #worked on first try :> happy.
+
+
     async def go_shelter(self):
         #scene - 2
         self.print_main("Inside the shelter, you discover a cozy, slightly disheveled space filled with the gentle sounds of animals. Soft lighting illuminates a variety of cages and beds, each occupied by curious, hopeful animals awaiting a new home. The air is filled with a comforting blend of pet scents and the faint hum of activity, creating an atmosphere of warmth and anticipation.", False)
@@ -166,18 +169,65 @@ class MainWindow(QMainWindow):
         await self.sleep(2)
         self.print_main("\nShould you adopt this cute little black fur ball?")
         self.print_options("option 1 :- Yes\noption 2 :- No")
-        while True:
-            await self.option_clicked.wait()
-            if self.selected_option > 2:
-                self.print_main("\ninvalid option, please select a valid option")
-                self.option_clicked.clear()
-            else:
-                break
-        self.option_clicked.clear()
-        if self.selected_option == 1:
-            pass
-        else:
-            pass
+        await self.checkOption([1,2])
+        await self.ifOption([self.adopt_cat, self.dont_adopt_cat])
+    async def go_options(self):
+        #scene - 2
+        self.print_main("Alright!, You decided not to go inside this suspicious looking animal shelter", False)
+        await self.sleep(1)
+        self.print_main("Would you like to go anywhere else, or just return to your sweet home?")
+        await self.sleep(1)
+        self.print_options("option 1 :- Go Home!\noption 2 :- Go to park\noption 3 :- Go to the new animal shelter\noption 4 :- On second thought, I'll just go to the old shelter.")
+        await self.checkOption()
+        await self.ifOption([self.go_home, self.go_park, self.go_new_shelter, self.go_shelter])
+
+
+    async def adopt_cat(self):
+        #scene - 3
+        self.print_main("How cute!, You must adopt her. No matter what!", False)
+        await self.sleep(1)
+        self.print_main("Would you like to go anywhere else, or just return to your sweet home?")
+        await self.sleep(1)
+        self.print_options("option 1 :- Go Home!\noption 2 :- Go to park\noption 3 :- Go to the new animal shelter\noption 4 :- On second thought, I'll just go to the old shelter.")
+        await self.checkOption()
+        await self.ifOption([])
+    async def dont_adopt_cat(self):
+        #scene - 3
+        self.print_main("You really really wanted to adopt this fur ball but sadly you don't think its the best choice.", False)
+        await self.sleep(1)
+        self.print_main("Would you like to look around the shelter?")
+        await self.sleep(1)
+        self.print_options("option 1 :- Yes\noption 2 :- No, go home")
+        await self.checkOption()
+        await self.ifOption([])
+    async def go_home(self):
+        #scene - 3
+        self.print_main("Its certainly been a long day, you decided its time to go home already. Its a bit sad, you would have loved to explore a bit more but its getting late....", False)
+        await self.sleep(1)
+        self.print_main("\nNow that you are in your home, what would you like to do?")
+        await self.sleep(1)
+        self.print_options("option 1 :- Watch T.V.\noption 2 :- Clean the house\noption 3 :- Grab something to eat.\noption 4 :- Go to bed.")
+        await self.checkOption()
+        await self.ifOption([])
+    async def go_park(self):
+        #scene - 3
+        self.print_main("How cute!, You must adopt her. No matter what!", False)
+        await self.sleep(1)
+        self.print_main("Would you like to go anywhere else, or just return to your sweet home?")
+        await self.sleep(1)
+        self.print_options("option 1 :- Go Home!\noption 2 :- Go to park\noption 3 :- Go to the new animal shelter\noption 4 :- On second thought, I'll just go to the old shelter.")
+        await self.checkOption()
+        await self.ifOption([])
+    async def go_new_shelter(self):
+        #scene - 3
+        self.print_main("How cute!, You must adopt her. No matter what!", False)
+        await self.sleep(1)
+        self.print_main("Would you like to go anywhere else, or just return to your sweet home?")
+        await self.sleep(1)
+        self.print_options("option 1 :- Go Home!\noption 2 :- Go to park\noption 3 :- Go to the new animal shelter\noption 4 :- On second thought, I'll just go to the old shelter.")
+        await self.checkOption()
+        await self.ifOption([])
+
 
 
 
